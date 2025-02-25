@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install common scientific Python packages
-COPY ./base/python-scientific-common/requirements-common.txt .
+COPY ./images/python/scientific/requirements-common.txt .
 RUN pip install --no-cache-dir -r requirements-common.txt
 
 # Default command
