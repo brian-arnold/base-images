@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install base requirements
-COPY ./base/python-minimal/requirements.txt .
+COPY ./images/python/minimal/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Default command
