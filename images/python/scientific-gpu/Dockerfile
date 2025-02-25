@@ -7,7 +7,8 @@ FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    PYTHON_VERSION=${PYTHON_VERSION}
 
 # Create a non-root user
 RUN groupadd -r jovyan && useradd -r -g jovyan jovyan
