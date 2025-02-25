@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DEBIAN_FRONTEND=noninteractive
 
 # redefine the ARGs
-ARG PYTHON_VERSION=3.11
+ARG PYTHON_VERSION
 # Create a non-root user
 RUN groupadd -r jovyan && useradd -r -g jovyan jovyan
 
