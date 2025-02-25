@@ -83,23 +83,13 @@ jobs:
             
             # Build the image with Git SHA as a build arg
             echo "Building with tags: $IMAGE_TAGS"
-            docker build \
+            docker buildx build \
               --build-arg GIT_SHA=$GIT_SHA \
               $IMAGE_TAGS \
+              --push \
               $PATH
             
-            echo "Successfully built: $NAME"
-            
-            # Push to registry
-            echo "Pushing $NAME to registry..."
-            docker push ghcr.io/${{ github.repository_owner }}/$NAME:latest
-            docker push ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_SHA
-            
-            # Push tag version if available
-            if [[ -n "$GIT_TAG" ]]; then
-              echo "Pushing $NAME:$GIT_TAG"
-              docker push ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_TAG
-            fi
+            echo "Successfully built and pushed: $NAME"
             
             COUNT=$((COUNT+1))
           done
