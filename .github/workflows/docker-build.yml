@@ -6,7 +6,7 @@ on:
     paths:
       - '**/Dockerfile'
       - 'docker-images.json'
-      - '.github/workflows/build-docker-images.yml'
+      - '.github/workflows/docker-build.yml'
     tags:
       - 'v*.*.*'  # Trigger on semantic version tags (v1.2.3)
   workflow_dispatch:
