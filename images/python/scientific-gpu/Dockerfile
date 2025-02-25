@@ -1,4 +1,5 @@
 # GPU-enabled scientific Python image
+ARG OWNER=enigma-brain
 ARG PYTHON_VERSION=3.11
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 

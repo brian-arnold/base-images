@@ -1,4 +1,5 @@
 ARG GIT_SHA=latest
+ARG OWNER=enigma-brain
 # minimalistic Python image
 FROM python:3.11-slim
 LABEL org.opencontainers.image.revision=${GIT_SHA}

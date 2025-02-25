@@ -1,8 +1,7 @@
-# Common scientific libraries and dependencies
-
 # Accept Git SHA as a build argument
+ARG OWNER=enigma-brain
 ARG GIT_SHA=latest
-FROM ghcr.io/enigma-brain/python-minimal:${GIT_SHA}
+FROM ghcr.io/${OWNER}/python-minimal:${GIT_SHA}
 # Add Git SHA as a label for traceability
 LABEL org.opencontainers.image.revision=${GIT_SHA}
 
