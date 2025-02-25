@@ -81,10 +81,11 @@ jobs:
               echo "Adding tag: $GIT_TAG"
             fi
             
-            # Build the image with Git SHA as a build arg
+            # Build the image with Git SHA and OWNER as build args
             echo "Building with tags: $IMAGE_TAGS"
             docker buildx build \
               --build-arg GIT_SHA=$GIT_SHA \
+              --build-arg OWNER=${{ github.repository_owner }} \
               $IMAGE_TAGS \
               --file $TARGET/Dockerfile \
               --push \
