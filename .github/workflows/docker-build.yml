@@ -62,13 +62,13 @@ jobs:
           # Build each image defined in the JSON file
           echo "$IMAGES" | while read -r img; do
             NAME=$(echo $img | jq -r '.name')
-            PATH=$(echo $img | jq -r '.path')
+            TARGET=$(echo $img | jq -r '.path')
             
-            echo "[$COUNT/$TOTAL] Building image: $NAME from $PATH"
+            echo "[$COUNT/$TOTAL] Building image: $NAME from $TARGET"
             
             # Skip if Dockerfile doesn't exist
-            if [ ! -f "$PATH/Dockerfile" ]; then
-              echo "Warning: No Dockerfile found at $PATH, skipping"
+            if [ ! -f "$TARGET/Dockerfile" ]; then
+              echo "Warning: No Dockerfile found at $TARGET, skipping"
               continue
             fi
             
@@ -83,11 +83,12 @@ jobs:
             
             # Build the image with Git SHA as a build arg
             echo "Building with tags: $IMAGE_TAGS"
-            /usr/bin/docker buildx build \
+            docker buildx build \
               --build-arg GIT_SHA=$GIT_SHA \
               $IMAGE_TAGS \
+              --file $TARGET/Dockerfile \
               --push \
-              $PATH
+              .
             
             echo "Successfully built and pushed: $NAME"
             
