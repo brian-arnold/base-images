@@ -83,7 +83,7 @@ jobs:
             
             # Build the image with Git SHA as a build arg
             echo "Building with tags: $IMAGE_TAGS"
-            docker buildx build \
+            /usr/bin/docker buildx build \
               --build-arg GIT_SHA=$GIT_SHA \
               $IMAGE_TAGS \
               --push \
