@@ -1,0 +1,16 @@
+{
+    "images": [
+        {
+            "name": "python-base",
+            "path": "images/python/base"
+        },
+        {
+            "name": "python-scientific",
+            "path": "images/python/scientific"
+        },
+        {
+            "name": "python-scientific-gpu",
+            "path": "images/python/scientific-gpu"
+        }
+    ]
+}

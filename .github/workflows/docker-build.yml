@@ -1,0 +1,98 @@
+name: Build Docker Images
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**/Dockerfile'
+      - 'docker-images.json'
+      - '.github/workflows/docker-build.yml'
+    tags:
+      - 'v*.*.*'  # Trigger on semantic version tags (v1.2.3)
+  workflow_dispatch:
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push images
+        run: |
+          # Check if the JSON config file exists
+          if [ ! -f docker-images.json ]; then
+            echo "Error: docker-images.json file not found!"
+            exit 1
+          fi
+          
+          # Get the short SHA (first 7 characters)
+          GIT_SHA="${GITHUB_SHA:0:7}"
+          echo "Building with Git SHA: $GIT_SHA"
+          
+          # Check if we're building from a tag
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            # Extract tag name (removing 'refs/tags/' prefix)
+            GIT_TAG="${GITHUB_REF#refs/tags/}"
+            echo "Building from tag: $GIT_TAG"
+          else
+            GIT_TAG=""
+          fi
+          
+          # Parse the JSON file
+          IMAGES=$(jq -c '.images[]' docker-images.json)
+          
+          # Counter for build order display
+          COUNT=1
+          TOTAL=$(echo "$IMAGES" | wc -l)
+          
+          # Build each image defined in the JSON file
+          echo "$IMAGES" | while read -r img; do
+            NAME=$(echo $img | jq -r '.name')
+            TARGET=$(echo $img | jq -r '.path')
+            
+            echo "[$COUNT/$TOTAL] Building image: $NAME from $TARGET"
+            
+            # Skip if Dockerfile doesn't exist
+            if [ ! -f "$TARGET/Dockerfile" ]; then
+              echo "Warning: No Dockerfile found at $TARGET, skipping"
+              continue
+            fi
+            
+            # Define image tags
+            IMAGE_TAGS="-t ghcr.io/${{ github.repository_owner }}/$NAME:latest -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_SHA"
+            
+            # Add tag version if building from a git tag
+            if [[ -n "$GIT_TAG" ]]; then
+              IMAGE_TAGS="$IMAGE_TAGS -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_TAG"
+              echo "Adding tag: $GIT_TAG"
+            fi
+            
+            # Build the image with Git SHA and OWNER as build args
+            echo "Building with tags: $IMAGE_TAGS"
+            docker buildx build \
+              --build-arg GIT_SHA=$GIT_SHA \
+              --build-arg OWNER=${{ github.repository_owner }} \
+              $IMAGE_TAGS \
+              --file $TARGET/Dockerfile \
+              --push \
+              .
+            
+            echo "Successfully built and pushed: $NAME"
+            
+            COUNT=$((COUNT+1))
+          done
