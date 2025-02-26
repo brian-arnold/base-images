@@ -5,7 +5,7 @@ This minimal Python base image is built on top of an Ubuntu base image. It inclu
 
 ## Features
 - **Ubuntu Base**: Leverages the stability and security of the Ubuntu operating system.
-- **Minimal Packages**: Only essential packages are included to keep the image size small and reduce attack surface.
+- **Minimal Packages**: Only packages we considered essential across all project-related images are included to keep the image size small and reusable.
 - **Python Version**: Comes with a specified version of Python pre-installed.
 
 ## Usage

@@ -16,6 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 
 # Install system dependencies and Python
+# TODO: consider revisiting this list and prune
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python${PYTHON_VERSION} \
     python${PYTHON_VERSION}-venv \
@@ -26,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim \
     wget \
     unzip \
+    ffmpeg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
