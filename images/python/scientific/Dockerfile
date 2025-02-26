@@ -3,6 +3,8 @@ ARG OWNER=enigma-brain
 ARG GIT_SHA=latest
 FROM ghcr.io/${OWNER}/python-minimal:${GIT_SHA}
 # Add Git SHA as a label for traceability
+
+ARG GIT_SHA
 LABEL org.opencontainers.image.revision=${GIT_SHA}
 
 # Install system dependencies for scientific packages
