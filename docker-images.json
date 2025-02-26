@@ -1,8 +1,8 @@
 {
     "images": [
         {
-            "name": "python-minimal",
-            "path": "images/python/minimal"
+            "name": "python-base",
+            "path": "images/python/base"
         },
         {
             "name": "python-scientific",

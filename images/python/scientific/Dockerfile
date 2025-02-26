@@ -1,7 +1,7 @@
 # Accept Git SHA as a build argument
 ARG OWNER=enigma-brain
 ARG GIT_SHA=latest
-FROM ghcr.io/${OWNER}/python-minimal:${GIT_SHA}
+FROM ghcr.io/${OWNER}/python-base:${GIT_SHA}
 # Add Git SHA as a label for traceability
 
 ARG GIT_SHA
