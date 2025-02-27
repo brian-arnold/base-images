@@ -21,6 +21,7 @@ WORKDIR /src
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python${PYTHON_VERSION} \
     python${PYTHON_VERSION}-dev \
+    python${PYTHON_VERSION}-venv \
     python3-pip \
     build-essential \
     libopenblas-dev \
