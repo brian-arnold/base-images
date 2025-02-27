@@ -14,6 +14,8 @@ on:
 jobs:
   build-images:
     runs-on: ubuntu-latest
+    # Only run this workflow on the enigma-brain/base-images repository
+    if: github.repository == 'enigma-brain/base-images'
     permissions:
       contents: read
       packages: write
