@@ -13,15 +13,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-images:
+  build-base:
     runs-on: ubuntu-latest
-    # Only run this workflow on the enigma-brain/base-images repository
     if: github.repository == 'enigma-brain/base-images'
     permissions:
       contents: read
       packages: write
     steps:
-
       - name: Check out the repository
         uses: actions/checkout@v3
 
@@ -35,7 +33,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push images
+      - name: Build and push base image
         run: |
           # Check if the JSON config file exists
           if [ ! -f docker-images.json ]; then
@@ -56,46 +54,205 @@ jobs:
             GIT_TAG=""
           fi
           
-          # Parse the JSON file
-          IMAGES=$(jq -c '.images[]' docker-images.json)
+          # Get the base image info
+          BASE_IMG=$(jq -c '.images[] | select(.name=="python-base")' docker-images.json)
           
-          # Counter for build order display
-          COUNT=1
-          TOTAL=$(echo "$IMAGES" | wc -l)
+          if [ -z "$BASE_IMG" ]; then
+            echo "Error: Base image configuration not found!"
+            exit 1
+          fi
           
-          # Build each image defined in the JSON file
-          echo "$IMAGES" | while read -r img; do
-            NAME=$(echo $img | jq -r '.name')
-            TARGET=$(echo $img | jq -r '.path')
-            
-            echo "[$COUNT/$TOTAL] Building image: $NAME from $TARGET"
-            
-            # Skip if Dockerfile doesn't exist
-            if [ ! -f "$TARGET/Dockerfile" ]; then
-              echo "Warning: No Dockerfile found at $TARGET, skipping"
-              continue
-            fi
-            
-            # Define image tags
-            IMAGE_TAGS="-t ghcr.io/${{ github.repository_owner }}/$NAME:latest -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_SHA"
-            
-            # Add tag version if building from a git tag
-            if [[ -n "$GIT_TAG" ]]; then
-              IMAGE_TAGS="$IMAGE_TAGS -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_TAG"
-              echo "Adding tag: $GIT_TAG"
-            fi
-            
-            # Build the image with Git SHA and OWNER as build args
-            echo "Building with tags: $IMAGE_TAGS"
-            docker buildx build \
-              --build-arg GIT_SHA=$GIT_SHA \
-              --build-arg OWNER=${{ github.repository_owner }} \
-              $IMAGE_TAGS \
-              --file $TARGET/Dockerfile \
-              --push \
-              .
-            
-            echo "Successfully built and pushed: $NAME"
-            
-            COUNT=$((COUNT+1))
-          done
+          NAME=$(echo $BASE_IMG | jq -r '.name')
+          TARGET=$(echo $BASE_IMG | jq -r '.path')
+          
+          echo "Building image: $NAME from $TARGET"
+          
+          # Skip if Dockerfile doesn't exist
+          if [ ! -f "$TARGET/Dockerfile" ]; then
+            echo "Warning: No Dockerfile found at $TARGET, skipping"
+            exit 1
+          fi
+          
+          # Define image tags
+          IMAGE_TAGS="-t ghcr.io/${{ github.repository_owner }}/$NAME:latest -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_SHA"
+          
+          # Add tag version if building from a git tag
+          if [[ -n "$GIT_TAG" ]]; then
+            IMAGE_TAGS="$IMAGE_TAGS -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_TAG"
+            echo "Adding tag: $GIT_TAG"
+          fi
+          
+          # Build the image with Git SHA and OWNER as build args
+          echo "Building with tags: $IMAGE_TAGS"
+          docker buildx build \
+            --build-arg GIT_SHA=$GIT_SHA \
+            --build-arg OWNER=${{ github.repository_owner }} \
+            $IMAGE_TAGS \
+            --file $TARGET/Dockerfile \
+            --push \
+            .
+          
+          echo "Successfully built and pushed: $NAME"
+
+  build-scientific:
+    needs: build-base
+    runs-on: ubuntu-latest
+    if: github.repository == 'enigma-brain/base-images'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push scientific image
+        run: |
+          # Check if the JSON config file exists
+          if [ ! -f docker-images.json ]; then
+            echo "Error: docker-images.json file not found!"
+            exit 1
+          fi
+          
+          # Get the short SHA (first 7 characters)
+          GIT_SHA="${GITHUB_SHA:0:7}"
+          echo "Building with Git SHA: $GIT_SHA"
+          
+          # Check if we're building from a tag
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            # Extract tag name (removing 'refs/tags/' prefix)
+            GIT_TAG="${GITHUB_REF#refs/tags/}"
+            echo "Building from tag: $GIT_TAG"
+          else
+            GIT_TAG=""
+          fi
+          
+          # Get the scientific image info
+          SCI_IMG=$(jq -c '.images[] | select(.name=="python-scientific")' docker-images.json)
+          
+          if [ -z "$SCI_IMG" ]; then
+            echo "Error: Scientific image configuration not found!"
+            exit 1
+          fi
+          
+          NAME=$(echo $SCI_IMG | jq -r '.name')
+          TARGET=$(echo $SCI_IMG | jq -r '.path')
+          
+          echo "Building image: $NAME from $TARGET"
+          
+          # Skip if Dockerfile doesn't exist
+          if [ ! -f "$TARGET/Dockerfile" ]; then
+            echo "Warning: No Dockerfile found at $TARGET, skipping"
+            exit 1
+          fi
+          
+          # Define image tags
+          IMAGE_TAGS="-t ghcr.io/${{ github.repository_owner }}/$NAME:latest -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_SHA"
+          
+          # Add tag version if building from a git tag
+          if [[ -n "$GIT_TAG" ]]; then
+            IMAGE_TAGS="$IMAGE_TAGS -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_TAG"
+            echo "Adding tag: $GIT_TAG"
+          fi
+          
+          # Build the image with Git SHA and OWNER as build args
+          echo "Building with tags: $IMAGE_TAGS"
+          docker buildx build \
+            --build-arg GIT_SHA=$GIT_SHA \
+            --build-arg OWNER=${{ github.repository_owner }} \
+            $IMAGE_TAGS \
+            --file $TARGET/Dockerfile \
+            --push \
+            .
+          
+          echo "Successfully built and pushed: $NAME"
+
+  build-scientific-gpu:
+    runs-on: ubuntu-latest
+    if: github.repository == 'enigma-brain/base-images'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push scientific-gpu image
+        run: |
+          # Check if the JSON config file exists
+          if [ ! -f docker-images.json ]; then
+            echo "Error: docker-images.json file not found!"
+            exit 1
+          fi
+          
+          # Get the short SHA (first 7 characters)
+          GIT_SHA="${GITHUB_SHA:0:7}"
+          echo "Building with Git SHA: $GIT_SHA"
+          
+          # Check if we're building from a tag
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            # Extract tag name (removing 'refs/tags/' prefix)
+            GIT_TAG="${GITHUB_REF#refs/tags/}"
+            echo "Building from tag: $GIT_TAG"
+          else
+            GIT_TAG=""
+          fi
+          
+          # Get the scientific-gpu image info
+          GPU_IMG=$(jq -c '.images[] | select(.name=="python-scientific-gpu")' docker-images.json)
+          
+          if [ -z "$GPU_IMG" ]; then
+            echo "Error: Scientific-GPU image configuration not found!"
+            exit 1
+          fi
+          
+          NAME=$(echo $GPU_IMG | jq -r '.name')
+          TARGET=$(echo $GPU_IMG | jq -r '.path')
+          
+          echo "Building image: $NAME from $TARGET"
+          
+          # Skip if Dockerfile doesn't exist
+          if [ ! -f "$TARGET/Dockerfile" ]; then
+            echo "Warning: No Dockerfile found at $TARGET, skipping"
+            exit 1
+          fi
+          
+          # Define image tags
+          IMAGE_TAGS="-t ghcr.io/${{ github.repository_owner }}/$NAME:latest -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_SHA"
+          
+          # Add tag version if building from a git tag
+          if [[ -n "$GIT_TAG" ]]; then
+            IMAGE_TAGS="$IMAGE_TAGS -t ghcr.io/${{ github.repository_owner }}/$NAME:$GIT_TAG"
+            echo "Adding tag: $GIT_TAG"
+          fi
+          
+          # Build the image with Git SHA and OWNER as build args
+          echo "Building with tags: $IMAGE_TAGS"
+          docker buildx build \
+            --build-arg GIT_SHA=$GIT_SHA \
+            --build-arg OWNER=${{ github.repository_owner }} \
+            $IMAGE_TAGS \
+            --file $TARGET/Dockerfile \
+            --push \
+            .
+          
+          echo "Successfully built and pushed: $NAME"
