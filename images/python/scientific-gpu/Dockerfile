@@ -1,7 +1,7 @@
 # GPU-enabled scientific Python image
 ARG OWNER=enigma-brain
-ARG PYTHON_VERSION=3.11
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+ARG PYTHON_VERSION=3.12
+FROM nvidia/cuda:12.8.0-cudnn-devel-ubuntu24.04
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -31,8 +31,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     git \
     curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/python
+    && rm -rf /var/lib/apt/lists/*
+
+# Create and activate virtual environment
+# This avoids the externally-managed-environment error
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Install common scientific packages
 COPY ./images/python/scientific/requirements-common.txt .
@@ -42,14 +46,6 @@ RUN pip install --no-cache-dir -r requirements-common.txt
 COPY ./images/python/scientific-gpu/requirements-gpu.txt .
 RUN pip install --no-cache-dir -r requirements-gpu.txt
 
-# Set ownership to non-root user
-RUN chown -R jovyan:jovyan /src
-
-# Switch to non-root user
-USER jovyan
-
-# Expose port for Jupyter
-EXPOSE 8888
 
 # Default command
 CMD ["python", "-c", "import torch; print(f'GPU available: {torch.cuda.is_available()}')"]

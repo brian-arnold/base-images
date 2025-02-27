@@ -39,6 +39,11 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install common development tools in the virtual environment
 RUN pip install --upgrade pip setuptools wheel
 
+# Install from requirements file
+COPY ./images/python/base/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+
 # TODO: Add restrcited user for running the container
 # RUN groupadd -r jovyan && useradd -r -g jovyan jovyan
 

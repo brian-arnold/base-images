@@ -1,6 +1,14 @@
-numpy
-scipy
-pandas
-matplotlib
-h5py
-scikit-learn
+numpy  # Fundamental package for scientific computing with multi-dimensional arrays
+scipy  # Scientific computing library with modules for optimization, linear algebra, integration, etc.
+pandas  # Data analysis and manipulation library with DataFrame structure
+matplotlib  # Comprehensive visualization library for creating static, animated, and interactive plots
+h5py  # Interface to the HDF5 binary data format for storing large numerical datasets
+scikit-learn  # Machine learning library with tools for classification, regression, clustering, etc.
+ipywidgets  # Interactive HTML widgets for Jupyter notebooks
+jupyterlab  # Web-based interactive development environment for notebooks, code, and data
+datajoint==0.12.7  # Framework for scientific data pipelines with relational database support
+kilosort  # Tool for spike sorting of neural recordings
+pymatreader  # Library for reading MATLAB MAT files in Python
+medicine-neuro  # Specialized package for neuroscience in medical applications
+"spikeinterface[full,widgets]"  # Motion estimation for neurophysiology data
+# TODO: extract some library into separate requirements file
