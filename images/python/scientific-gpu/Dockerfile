@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python${PYTHON_VERSION} \
     python${PYTHON_VERSION}-dev \
     python${PYTHON_VERSION}-venv \
-    python3-pip \
+    python${PYTHON_VERSION}-distutils \
     build-essential \
     libopenblas-dev \
     liblapack-dev \
