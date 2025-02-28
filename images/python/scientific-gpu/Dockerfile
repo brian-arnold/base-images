@@ -1,7 +1,8 @@
 # GPU-enabled scientific Python image
 ARG OWNER=enigma-brain
-ARG PYTHON_VERSION=3.12
-FROM nvidia/cuda:12.8.0-cudnn-devel-ubuntu24.04
+ARG PYTHON_VERSION=3.9
+FROM nvidia/cuda:12.2.0-devel-ubuntu20.04
+
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
