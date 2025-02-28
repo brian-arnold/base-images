@@ -2,3 +2,4 @@ torch  # PyTorch deep learning framework
 GPUtil  # GPU monitoring and management library
 gpustat  # Command-line tool for monitoring GPU status
 pynvml  # Python bindings for NVIDIA Management Library to monitor and manage NVIDIA GPUs
+opencv-python  # OpenCV computer vision library
