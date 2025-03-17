@@ -43,11 +43,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python${PYTHON_VERSION} -m venv --system-site-packages /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Create a new user with UID 1000 and GID 1000 and then own the venv
-# create usergroup first
-RUN groupadd -g ${USER_GID} ${USER_NAME} && \
-    useradd -m -u ${USER_UID} -g ${USER_GID} ${USER_NAME} && \
-    chown -R ${USER_NAME}:${USER_NAME} /opt/venv
+# Setup user and group with given UID and GID as well as given name
+# If it already exists, change the group name or user name to the given name
+RUN if ! getent group ${USER_GID} > /dev/null; then \
+    groupadd -g ${USER_GID} ${USER_NAME}; \
+    else \
+    CURRENT_GROUP=$(getent group ${USER_GID} | cut -d: -f1) && \
+    groupmod -n ${USER_NAME} ${CURRENT_GROUP}; \
+    fi && \
+    if ! getent passwd ${USER_UID} > /dev/null; then \
+    useradd -m -u ${USER_UID} -g ${USER_GID} ${USER_NAME}; \
+    else \
+    CURRENT_USER=$(getent passwd ${USER_UID} | cut -d: -f1) && \
+    usermod -l ${USER_NAME} ${CURRENT_USER}; \
+    fi && \
+    chown -R ${USER_NAME}:${USER_GID} /opt/venv
 # Switch to the new user
 USER ${USER_NAME}
 WORKDIR /home/${USER_NAME}
