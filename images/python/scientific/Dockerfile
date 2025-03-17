@@ -7,6 +7,9 @@ FROM ghcr.io/${OWNER}/python-base:${GIT_SHA}
 ARG GIT_SHA
 LABEL org.opencontainers.image.revision=${GIT_SHA}
 
+# switch to root user
+USER root
+
 # Install system dependencies for scientific packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -17,6 +20,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gfortran \
     wget \
     && rm -rf /var/lib/apt/lists/*
+
+# Switch back to the original user
+# The USER_NAME variable is inherited from the base image
+USER ${USER_NAME}
+
 
 # Install common scientific Python packages
 COPY ./images/python/scientific/requirements-common.txt .
