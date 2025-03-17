@@ -10,10 +10,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     DEBIAN_FRONTEND=noninteractive
 
+# Define build arguments
+ARG USER_UID=1000
+ARG USER_GID=1000
+ARG USER_NAME=jovyan
 
 # redefine the ARGs
 ARG PYTHON_VERSION
-
 
 # Install Python and system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -35,12 +38,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim \
     && rm -rf /var/lib/apt/lists/*
 
-
-
 # Create and activate virtual environment
 # This avoids the externally-managed-environment error
 RUN python${PYTHON_VERSION} -m venv --system-site-packages /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+
+# Create a new user with UID 1000 and GID 1000 and then own the venv
+# create usergroup first
+RUN groupadd -g ${USER_GID} ${USER_NAME} && \
+    useradd -m -u ${USER_UID} -g ${USER_GID} ${USER_NAME} && \
+    chown -R ${USER_NAME}:${USER_NAME} /opt/venv
+# Switch to the new user
+USER ${USER_NAME}
+WORKDIR /home/${USER_NAME}
 
 # Upgrade pip and setuptools - necessary to avoid some erros in package installations
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
@@ -52,7 +62,6 @@ RUN pip install --no-cache-dir -r requirements-common.txt
 # Install GPU-specific packages
 COPY ./images/python/scientific-gpu/requirements-gpu.txt .
 RUN pip install --no-cache-dir -r requirements-gpu.txt
-
 
 # Default command
 CMD ["python", "-c", "import torch; print(f'GPU available: {torch.cuda.is_available()}')"]

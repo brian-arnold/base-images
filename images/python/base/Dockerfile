@@ -15,6 +15,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=on
 
 
+# Define build arguments
+ARG USER_UID=1000
+ARG USER_GID=1000
+ARG USER_NAME=jovyan
+
+
 # Install system dependencies and Python
 # TODO: consider revisiting this list and prune
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -35,6 +41,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # This avoids the externally-managed-environment error
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+
+# Create a new user with UID 1000 and GID 1000 and then own the venv
+# create usergroup first
+RUN groupadd -g ${USER_GID} ${USER_NAME} && \
+    useradd -m -u ${USER_UID} -g ${USER_GID} ${USER_NAME} && \
+    chown -R ${USER_NAME}:${USER_NAME} /opt/venv
+# Switch to the new user
+USER ${USER_NAME}
+WORKDIR /home/${USER_NAME}
 
 # Install common development tools in the virtual environment
 RUN pip install --upgrade pip setuptools wheel
