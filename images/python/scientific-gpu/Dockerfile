@@ -40,8 +40,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Create and activate virtual environment
 # This avoids the externally-managed-environment error
-RUN python${PYTHON_VERSION} -m venv --system-site-packages /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+RUN python${PYTHON_VERSION} -m pip install --upgrade pip setuptools wheel && \
+    ln -s /usr/bin/python3 /usr/bin/python
+# ln -s /opt/venv/bin/pip /usr/local/bin/pip
 
 # Setup user and group with given UID and GID as well as given name
 # If it already exists, change the group name or user name to the given name
@@ -56,8 +57,7 @@ RUN if ! getent group ${USER_GID} > /dev/null; then \
     else \
     CURRENT_USER=$(getent passwd ${USER_UID} | cut -d: -f1) && \
     usermod -l ${USER_NAME} ${CURRENT_USER}; \
-    fi && \
-    chown -R ${USER_NAME}:${USER_GID} /opt/venv
+    fi
 # Switch to the new user
 USER ${USER_NAME}
 WORKDIR /home/${USER_NAME}
