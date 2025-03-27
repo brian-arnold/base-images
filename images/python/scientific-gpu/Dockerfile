@@ -43,10 +43,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python${PYTHON_VERSION} -m venv --system-site-packages /opt/venv && \
     . /opt/venv/bin/activate && \
     python -m pip install --upgrade pip setuptools wheel && \
-    rm -rf /usr/local/bin && \
-    ln -sf /opt/venv/bin /usr/local/bin
-
-ENV PATH="$PATH:/opt/venv/bin"
+    mkdir -p /etc/pip && \ 
+    # Disable falling back to user-site
+    echo "[global]\nuser = false\n" > /etc/pip.conf
+# Defaults to using the venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 
 # Setup user and group with given UID and GID as well as given name
@@ -69,15 +70,16 @@ USER ${USER_NAME}
 WORKDIR /home/${USER_NAME}
 
 # Upgrade pip and setuptools - necessary to avoid some erros in package installations
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip install --no-user --no-cache-dir --upgrade pip setuptools wheel
 
 # Install common scientific packages
 COPY ./images/python/scientific/requirements-common.txt .
-RUN pip install --no-cache-dir -r requirements-common.txt
+RUN pip install --no-user --no-cache-dir -r requirements-common.txt
 
 # Install GPU-specific packages
 COPY ./images/python/scientific-gpu/requirements-gpu.txt .
-RUN pip install --no-cache-dir -r requirements-gpu.txt
+RUN pip install --no-user --no-cache-dir -r requirements-gpu.txt
+
 
 # Default command
 CMD ["python", "-c", "import torch; print(f'GPU available: {torch.cuda.is_available()}')"]
