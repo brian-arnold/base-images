@@ -43,7 +43,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python${PYTHON_VERSION} -m venv --system-site-packages /opt/venv && \
     ln -sf /opt/venv/bin/python /usr/bin/python && \
     /opt/venv/bin/python -m pip install --upgrade pip setuptools wheel && \
-    ln -sf /opt/venv/bin/pip /usr/bin/pip
+    ln -sf /opt/venv/bin/pip /usr/bin/pip && \
+    # make venv bin available through /usr/local/bin
+    ln -sf /opt/venv/bin /usr/local/bin  
+
+ENV PATH="$PATH:/opt/venv/bin"
 
 
 # Setup user and group with given UID and GID as well as given name
