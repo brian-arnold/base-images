@@ -28,7 +28,7 @@ USER ${USER_NAME}
 
 # Install common scientific Python packages
 COPY ./images/python/scientific/requirements-common.txt .
-RUN pip install --no-cache-dir -r requirements-common.txt
+RUN pip install --no-user --no-cache-dir -r requirements-common.txt
 
 # Default command
 CMD ["python", "-c", "import numpy; print('Scientific Common Base Image')"]

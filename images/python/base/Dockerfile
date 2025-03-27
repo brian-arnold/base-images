@@ -16,9 +16,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 
 # Define build arguments
-ARG USER_UID=1000
-ARG USER_GID=1000
-ARG USER_NAME=jovyan
+ARG USER_UID=10000
+ARG USER_GID=10000
+ARG USER_NAME=user
 
 
 # Install system dependencies and Python
@@ -37,9 +37,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+
 # Create and activate virtual environment
 # This avoids the externally-managed-environment error
-RUN python${PYTHON_VERSION} -m venv /opt/venv
+RUN python${PYTHON_VERSION} -m venv --system-site-packages /opt/venv && \
+    . /opt/venv/bin/activate && \
+    python -m pip install --upgrade pip setuptools wheel && \
+    mkdir -p /etc/pip && \ 
+    # Disable falling back to user-site
+    echo "[global]\nuser = false\n" > /etc/pip.conf
+# Defaults to using the venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Setup user and group with given UID and GID as well as given name
@@ -67,10 +74,6 @@ RUN pip install --upgrade pip setuptools wheel
 # Install from requirements file
 COPY ./images/python/base/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-
-# TODO: Add restrcited user for running the container
-# RUN groupadd -r jovyan && useradd -r -g jovyan jovyan
 
 # Default command
 CMD ["bash"]
