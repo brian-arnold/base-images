@@ -44,11 +44,7 @@ RUN python${PYTHON_VERSION} -m venv --system-site-packages /opt/venv && \
     . /opt/venv/bin/activate && \
     python -m pip install --upgrade pip setuptools wheel && \
     rm -rf /usr/local/bin && \
-    ln -sf /opt/venv/bin /usr/local/bin && \
-    echo "Python location:" && \
-    which -L python && \
-    echo "Python symlink:" && \
-    ls -l $(which python)
+    ln -sf /opt/venv/bin /usr/local/bin
 
 ENV PATH="$PATH:/opt/venv/bin"
 
