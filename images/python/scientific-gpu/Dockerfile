@@ -41,11 +41,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create and activate virtual environment
 # This avoids the externally-managed-environment error
 RUN python${PYTHON_VERSION} -m venv --system-site-packages /opt/venv && \
-    ln -sf /opt/venv/bin/python /usr/bin/python && \
-    /opt/venv/bin/python -m pip install --upgrade pip setuptools wheel && \
-    ln -sf /opt/venv/bin/pip /usr/bin/pip && \
-    # make venv bin available through /usr/local/bin
-    ln -sf /opt/venv/bin /usr/local/bin  
+    . /opt/venv/bin/activate && \
+    python -m pip install --upgrade pip setuptools wheel && \
+    rm -rf /usr/local/bin && \
+    ln -sf /opt/venv/bin /usr/local/bin && \
+    echo "Python location:" && \
+    which -L python && \
+    echo "Python symlink:" && \
+    ls -l $(which python)
 
 ENV PATH="$PATH:/opt/venv/bin"
 
